@@ -1,14 +1,48 @@
-import {createComparison, defaultRules} from "../lib/compare.js";
+export function initFiltering(elements) {
+  const updateIndexes = (elements, indexes) => {
+    Object.keys(indexes).forEach((elementName) => {
+      elements[elementName].append(
+        ...Object.values(indexes[elementName]).map((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          return option;
+        }),
+      );
+    });
+  };
 
-// @todo: #4.3 — настроить компаратор
+  const applyFiltering = (query, state, action) => {
+    if (action && action.name === "clear") {
+      const fieldName = action.dataset.field;
+      const wrapper = action.closest(".filter__control, .filter-control, div");
+      const input = wrapper.querySelector(`[name="${fieldName}"]`);
 
-export function initFiltering(elements, indexes) {
-    // @todo: #4.1 — заполнить выпадающие списки опциями
+      if (input) {
+        input.value = "";
+      }
 
-    return (data, state, action) => {
-        // @todo: #4.2 — обработать очистку поля
-
-        // @todo: #4.5 — отфильтровать данные используя компаратор
-        return data;
+      if (fieldName in state) {
+        state[fieldName] = "";
+      }
     }
+
+    const filter = {};
+
+    Object.keys(elements).forEach((key) => {
+      const el = elements[key];
+      if (!el) return;
+
+      if (["INPUT", "SELECT"].includes(el.tagName) && el.value) {
+        filter[`filter[${el.name}]`] = el.value;
+      }
+    });
+
+    return Object.keys(filter).length ? Object.assign({}, query, filter) : query;
+  };
+
+  return {
+    updateIndexes,
+    applyFiltering,
+  };
 }
